@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tra Cứu Điểm - THPT Nguyễn Chí Thanh</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #0056b3; --primary-hover: #004494; --bg-color: #f4f6f9; --box-bg: #ffffff; --text-main: #333333; --border-color: #e0e0e0; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); font-size: 14px; }
+        
+        /* CSS Banner Trường */
+        .school-banner {
+            background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+            color: white;
+            text-align: center;
+            padding: 20px 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .school-banner h1 { margin: 0; font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .school-banner p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.9; }
+
+        .container { max-width: 500px; margin: 0 auto 30px auto; background: var(--box-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 92%; }
+        h2, h3 { text-align: center; color: var(--primary); margin-top: 0; font-size: 18px; }
+        h3 { font-size: 16px; margin-top: 25px; margin-bottom: 10px; border-bottom: 2px solid var(--primary); display: inline-block; padding-bottom: 4px; }
+        .center-heading { text-align: center; }
+        .search-box { display: flex; flex-direction: column; gap: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-weight: 600; font-size: 13px; color: #555; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background-color: #fdfdfd; }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); background-color: #fff; }
+        button { width: 100%; padding: 14px; background-color: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 5px; transition: 0.2s; }
+        button:hover { background-color: var(--primary-hover); }
+        
+        .student-info { background: #f8f9fa; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); padding: 12px 15px; border-radius: 6px; font-size: 14px; line-height: 1.5; }
+        .student-info p { margin: 4px 0; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 450px; white-space: nowrap; }
+        th, td { border: 1px solid var(--border-color); padding: 8px 6px; text-align: center; font-size: 13px; }
+        th { background-color: #f1f3f4; color: #333; font-weight: 600; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        .col-subject { text-align: left; font-weight: 500; padding-left: 10px;}
+        .col-highlight { color: #d93025; font-weight: bold; }
+        
+        #result-container { display: none; margin-top: 10px; }
+        .status-msg { font-size: 13px; text-align: center; margin-top: -5px; padding: 5px;}
+        .error { color: #d93025; font-weight: bold; text-align: center; margin: 15px 0;}
+        .success-msg { color: #1e8e3e; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- Banner Trường học -->
+<div class="school-banner">
+    <p>SỞ GIÁO DỤC VÀ ĐÀO TẠO TÂY NINH</p>
+    <h1>TRƯỜNG THPT NGUYỄN CHÍ THANH</h1>
+</div>
+
+<div class="container">
+    <h2>TRA CỨU ĐIỂM HK1 - KHỐI 10</h2>
+    
+    <div class="search-box">
+        <div class="input-group">
+            <label>1. Chọn lớp học</label>
+            <select id="class-select">
+                <option value="10A1">10A1</option>
+                <option value="10A2">10A2</option>
+                <option value="10A3">10A3</option>
+                <option value="10A4">10A4</option>
+                <option value="10A5">10A5</option>
+                <option value="10A6">10A6</option>
+                <option value="10A7">10A7</option>
+                <option value="10A8">10A8</option>
+                <option value="10A9">10A9</option>
+                <option value="10A10">10A10</option>
+                <option value="10A11">10A11</option>
+                <option value="10A12">10A12</option>
+                <option value="10A13">10A13</option>
+            </select>
+            <div id="status-msg" class="status-msg"></div>
+        </div>
+
+        <div class="input-group">
+            <label>2. Mã định danh (Bộ GD&ĐT)</label>
+            <input type="text" id="search-id" placeholder="Nhập mã định danh của học sinh">
+        </div>
+        
+        <button onclick="searchStudent()">TRA CỨU KẾT QUẢ</button>
+    </div>
+
+    <div id="error-msg" class="error"></div>
+
+    <div id="result-container">
+        <div class="center-heading"><h3>THÔNG TIN HỌC SINH</h3></div>
+        <div class="student-info" id="student-info">
+            <!-- Render JS -->
+        </div>
+
+        <div class="center-heading"><h3>BẢNG ĐIỂM CHI TIẾT</h3></div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Môn học</th>
+                        <th colspan="4">ĐĐGtx</th>
+                        <th rowspan="2">GK</th>
+                        <th rowspan="2">CK</th>
+                        <th rowspan="2">TBM</th>
+                    </tr>
+                    <tr>
+                        <th>1</th><th>2</th><th>3</th><th>4</th>
+                    </tr>
+                </thead>
+                <tbody id="grades-table-body">
+                    <!-- Render JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let studentDataMap = {}; // Lưu dữ liệu học sinh của lớp đang được load
+
+    // Tự động load dữ liệu lớp 10A1 ngay khi vừa mở trang web
+    window.onload = function() {
+        loadClassData();
+    };
+
+    // Tự động load lại file dữ liệu mới khi đổi lớp trong combobox
+    document.getElementById('class-select').addEventListener('change', function() {
+        document.getElementById('result-container').style.display = 'none';
+        document.getElementById('error-msg').innerText = '';
+        loadClassData();
+    });
+
+    // Hàm gọi file tĩnh bằng Fetch API
+    async function loadClassData() {
+        let selectedClass = document.getElementById('class-select').value;
+        let statusMsg = document.getElementById('status-msg');
+        
+        statusMsg.innerHTML = `⏳ Đang kết nối dữ liệu lớp ${selectedClass}...`;
+        statusMsg.className = "status-msg";
+        studentDataMap = {}; // Reset data
+
+        try {
+            // Đọc file từ thư mục KHOI_10 mặc định trên server
+            let response = await fetch(`./KHOI_10/${selectedClass}.xlsx`);
+            
+            if (!response.ok) {
+                throw new Error("Không tìm thấy file");
+            }
+
+            let arrayBuffer = await response.arrayBuffer();
+            let data = new Uint8Array(arrayBuffer);
+            let workbook = XLSX.read(data, {type: 'array'});
+            
+            workbook.SheetNames.forEach(sheetName => {
+                let sheet = workbook.Sheets[sheetName];
+                let rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+                
+                if (rows.length === 0) return;
+
+                let headerIndex = -1;
+                for (let i = 0; i < Math.min(10, rows.length); i++) {
+                    if (rows[i] && rows[i][1] && String(rows[i][1]).trim() === "Mã định danh Bộ GD&ĐT") {
+                        headerIndex = i; break;
+                    }
+                }
+                if (headerIndex === -1) return; 
+
+                let className = "Không xác định";
+                for (let i = 0; i < headerIndex; i++) {
+                    if (rows[i] && rows[i][0] && String(rows[i][0]).includes("Lớp:")) {
+                        className = String(rows[i][0]).replace("Lớp:", "").trim(); break;
+                    }
+                }
+
+                for (let i = headerIndex + 2; i < rows.length; i++) {
+                    let row = rows[i];
+                    let rawId = row[1];
+                    
+                    if (rawId === undefined || rawId === null || String(rawId).trim() === "") continue; 
+
+                    let studentId = String(rawId).trim().toLowerCase();
+
+                    if (!studentDataMap[studentId]) {
+                        studentDataMap[studentId] = {
+                            info: { id: String(rawId).trim(), name: row[2] || "", dob: row[3] || "", className: className },
+                            grades: []
+                        };
+                    }
+
+                    studentDataMap[studentId].grades.push({
+                        subject: sheetName,
+                        tx1: row[5] !== "" ? row[5] : "-",
+                        tx2: row[6] !== "" ? row[6] : "-",
+                        tx3: row[7] !== "" ? row[7] : "-",
+                        tx4: row[8] !== "" ? row[8] : "-",
+                        gk: row[10] !== "" ? row[10] : "-",
+                        ck: row[11] !== "" ? row[11] : "-",
+                        tbm: row[12] !== "" ? row[12] : "-"
+                    });
+                }
+            });
+
+            let count = Object.keys(studentDataMap).length;
+            if (count > 0) {
+                statusMsg.innerHTML = `✔️ Hệ thống sẵn sàng (${count} HS).`;
+                statusMsg.className = "status-msg success-msg";
+            } else {
+                statusMsg.innerHTML = `❌ File rỗng hoặc cấu trúc bị lỗi.`;
+                statusMsg.className = "status-msg error";
+            }
+        } catch (error) {
+            statusMsg.innerHTML = `❌ Chưa có dữ liệu bảng điểm cho lớp ${selectedClass}.`;
+            statusMsg.className = "status-msg error";
+        }
+    }
+
+    // Xử lý tra cứu
+    function searchStudent() {
+        let rawSearchInput = document.getElementById('search-id').value;
+        let resultContainer = document.getElementById('result-container');
+        let errorMsg = document.getElementById('error-msg');
+
+        resultContainer.style.display = 'none';
+        errorMsg.innerText = '';
+
+        if (Object.keys(studentDataMap).length === 0) {
+            errorMsg.innerText = "Dữ liệu lớp chưa được tải hoặc file không tồn tại trên hệ thống!"; return;
+        }
+        if (String(rawSearchInput).trim() === "") {
+            errorMsg.innerText = "Vui lòng nhập Mã định danh!"; return;
+        }
+
+        let searchId = String(rawSearchInput).trim().toLowerCase();
+        let student = studentDataMap[searchId];
+
+        if (student) {
+            document.getElementById('student-info').innerHTML = `
+                <p><strong>Họ Tên:</strong> ${student.info.name}</p>
+                <p><strong>Lớp:</strong> ${student.info.className}</p>
+                <p><strong>Ngày sinh:</strong> ${student.info.dob}</p>
+                <p><strong>Mã ĐD:</strong> ${student.info.id}</p>
+            `;
+
+            let tbody = document.getElementById('grades-table-body');
+            tbody.innerHTML = '';
+            
+            student.grades.forEach(grade => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-subject">${grade.subject}</td>
+                    <td>${grade.tx1}</td>
+                    <td>${grade.tx2}</td>
+                    <td>${grade.tx3}</td>
+                    <td>${grade.tx4}</td>
+                    <td><strong>${grade.gk}</strong></td>
+                    <td><strong>${grade.ck}</strong></td>
+                    <td class="col-highlight">${grade.tbm}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            resultContainer.style.display = 'block';
+        } else {
+            errorMsg.innerText = `Không tìm thấy học sinh mã "${rawSearchInput}" trong danh sách lớp ${document.getElementById('class-select').value}.`;
+        }
+    }
+</script>
+
+</body>
+</html>
